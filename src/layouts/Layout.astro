@@ -1,0 +1,106 @@
+---
+export interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />	
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<script is:inline src="/js/opentok.js"></script>
+<script is:inline src="/nexmoClient.js"></script>
+
+<style is:global>
+	:root {
+		--accent: 124, 58, 237;
+		--accent-gradient: linear-gradient(45deg, rgb(var(--accent)), #da62c4 30%, white 60%);
+	}
+	html {
+		font-family: system-ui, sans-serif;
+		background-color: #F6F6F6;
+	}
+	code {
+		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
+			Bitstream Vera Sans Mono, Courier New, monospace;
+	}
+
+	section {
+		display: grid;
+		place-content: center;
+	}
+
+	#login {
+		text-align: center;
+	}
+
+	#dashboard {
+		display : none;
+		text-align: center;
+	}
+
+	#events-container {
+		text-align: center;
+	}
+
+	#env-settings-container, #events-list-container {
+		text-align: left;
+	}
+
+	#env-section {
+		place-content: start;
+	}
+
+	video-subscriber::part(container) {
+		aspect-ratio: 16 / 9;
+	}
+
+	#video-subscriber-container {
+		display: flex;
+	    justify-content: center;
+	    align-items: center;
+		width: 80vw;
+        height: 90vh;
+        position: relative;
+
+	}
+
+	#camera-container {
+		display: grid;
+  		grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  		place-items: center;
+		width: 100%;
+	}
+
+	#screen-container {
+		width: 0;
+	}
+
+	#screen-container:has(> video-subscriber) {
+		width: 100%;
+	}
+
+	#screen-container:has(> video-subscriber) + #camera-container {
+		display: block;
+		width: 30%;
+	}
+
+	vc-messages::part(message) {
+		text-align: left;
+	}
+	vc-messages::part(message mine) {
+		text-align: right;
+	}
+</style>

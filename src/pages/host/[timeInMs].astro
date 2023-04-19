@@ -1,0 +1,393 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const { timeInMs } = Astro.params;
+const response = await fetch(Astro.url.origin+'/.netlify/functions/get_settings');
+const data = await response.json();
+const eventData = data.events.filter(event => event.timeInMs == timeInMs);
+if (eventData.length === 0) return Astro.redirect("/host");
+const {apiKey, sessionId, conversationId} = eventData[0];
+
+---
+<Layout title="Host">
+    <main>
+        <h1><a href="./"> &lt; </a>Host Dashboard</h1>
+        <section data-session-id={sessionId} data-api-key={apiKey} data-conversation-id={conversationId}>
+            <div id="login">
+                <label for="name">Enter your name:</label><br/>
+                <input type="text" id="name" name="name" required><br/>
+                <label for="pass">Enter password:</label><br/>
+                <input type="password" id="pass" name="password" required><br/>
+                <button id="submit">submit</button>
+                <div id="status"></div>
+            </div>
+            <div id="dashboard">
+                <section id="publisher-section">
+                    <inputs-select />
+                    <br/><br/>
+                    <div id="host-dashboard"></div>
+                    <video-publisher auto-publish="false"></video-publisher>
+                    <div id="controls">
+                        <button id="toggle-video">toggle Video</button>
+                        <button id="toggle-audio">toggle Audio</button>
+                        <button id="cycle">cycle Video</button>
+                        <button id="toggle-display" data-display="true" data-type="toggle-display">show on stream</button>
+                    </div>
+                    <screen-share></screen-share>
+                    <label for="scene-select">Choose a scene:</label>
+                    <select name="scenes" id="scene-select">
+                        <option value="">None</option>
+                        <option value="Starting Soon">Starting Soon</option>
+                        <option value="Taking a Break">Taking a Break</option>
+                        <option value="Stream Ended">Stream Ended</option>
+                    </select>
+                    <button id="scene-button">Select</button>
+    
+                </section>
+                <section id="subscribers-section"></section>
+                <section id="chat-section">
+                    <div id="chat-loading">loading chat</div>
+                    <div id="chat-application">
+                        <vc-members></vc-members>
+                        <div id="chat-section">
+                            <vc-messages></vc-messages>
+                            <div>
+                                <vc-text-input typingTimeout="1500"></vc-text-input>
+                                <vc-typing-indicator></vc-typing-indicator>
+                            </div>          
+                        </div>
+                    </div>
+              
+                </section>        
+            </div>
+        </section>
+
+    </main>
+    <template id="subscriber-template">
+        <video-subscriber></video-subscriber>
+        <button></button>
+    </template>
+
+</Layout>
+
+<script>
+	import '@vonage/video-publisher/video-publisher.js';
+	import '@vonage/video-subscriber/video-subscriber.js';
+	import '@vonage/screen-share/screen-share.js';
+	import '@vonage/inputs-select/inputs-select.js';
+
+    import '@vonage/vc-members/vc-members.js';
+    import '@vonage/vc-messages/vc-messages.js';
+    import '@vonage/vc-typing-indicator/vc-typing-indicator';
+    import '@vonage/vc-text-input/vc-text-input.js';
+
+
+</script>
+
+<script is:inline>
+
+    const sectionEl = document.querySelector("section");
+    const nameInput = document.querySelector("#name");
+    const passwordInput = document.querySelector("#pass");
+    const submitBtn = document.querySelector("#submit");
+
+    const vonageInput = document.querySelector("vc-text-input");
+    const vonageTypingIndicator = document.querySelector("vc-typing-indicator");
+    const vonageMembers = document.querySelector("vc-members");
+    const vonageMessagesFeed = document.querySelector("vc-messages");
+
+    const chatApplication = document.querySelector("#chat-application");
+    const chatLoading = document.querySelector("#chat-loading");
+
+
+    let session;
+
+    let displayState = [];
+
+    let client;
+    let app;
+    let conversation;
+
+    const apiKey = sectionEl.dataset.apiKey;
+    const sessionId = sectionEl.dataset.sessionId;
+    const conversationId = sectionEl.dataset.conversationId;
+
+    // Example POST method implementation:
+    async function postData(url = "", data = {}) {
+        const response = await fetch(url, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            headers: {
+            "Content-Type": "application/json",
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data), // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    function sendSignal(event){
+        session.signal({
+            type: event.target.dataset.type,
+            data: JSON.stringify(event.target.dataset)
+        }, (error) => {
+            if (error) {
+                console.error("it didn't worked");
+            } else {
+                console.log("it worked!");
+                // update displayState and localStorage
+                const foundIndex = displayState.findIndex((display) => display.id === event.target.dataset.id);
+                displayState[foundIndex].display = event.target.dataset.display;
+                // save to localStorage
+                saveToLocalStorage("displayState", displayState);
+
+                // switch button info
+                event.target.dataset.display = event.target.dataset.display==="true" ? "false" : "true";
+                event.target.innerText = event.target.dataset.display==="true" ? "show on stream" : "hide from stream";
+            }
+        });
+    }
+    
+    function saveToLocalStorage(name, data){
+        localStorage.setItem(name, JSON.stringify(data));
+    }
+
+    async function loadDashboard(){
+        // load displayState from localStorage
+        if (localStorage.getItem("displayState")) {
+            displayState = JSON.parse(localStorage.getItem("displayState"));
+            // update buttons and data
+            displayState.forEach(subscriber => {
+                if (document.querySelector(`[data-id="${subscriber.id}"]`)) {
+                    document.querySelector(`[data-id="${subscriber.id}"]`).setAttribute("data-id", `${event.detail.publisher.stream.streamId}`);
+                    document.querySelector(`[data-id="${subscriber.id}"]`).innerText = subscriber.display==="true" ? "show on stream" : "hide from stream";
+                }
+            });
+        }
+        document.querySelector("#dashboard").style.display="flex";
+        try {
+            const tokensData = await postData(`/.netlify/functions/generate_tokens`, {sessionId, role: "moderator"});
+            const { videoToken } = tokensData;
+
+            // Log into chat
+            const chatData = await postData(`/.netlify/functions/join_chat`, {name: nameInput.value, conversationId});
+            const { chatToken } = chatData;
+
+            client = new NexmoClient({debug:false});
+            app = await client.createSession(chatToken);
+            conversation = await app.getConversation(conversationId);
+
+            vonageInput.conversation = conversation;
+            vonageTypingIndicator.conversation = conversation;
+            vonageMembers.conversation = conversation;
+            vonageMessagesFeed.conversation = conversation;
+
+            chatLoading.style.display = "none";
+            chatApplication.style.display = "flex";
+
+            // Initialize an OpenTok Session object
+            session = OT.initSession(apiKey, sessionId);
+
+            const videoPublisherEl = document.querySelector('video-publisher');
+            const screenShareEl = document.querySelector('screen-share');
+
+            const inputsSelectEl = document.querySelector('inputs-select');
+            const subscribersSection = document.querySelector("#subscribers-section");
+            const controlsDiv = document.querySelector('#controls');
+            const toggleVideoBtn = document.querySelector('#toggle-video');
+            const toggleAudioBtn = document.querySelector('#toggle-audio');
+            const cycleBtn = document.querySelector('#cycle');
+            const toggleDisplayBtn = document.querySelector('#toggle-display');
+
+            const sceneSelect = document.querySelector("#scene-select");
+            const sceneBtn = document.querySelector("#scene-button");
+
+            session.connect(videoToken, (error) => {
+                if (error) {
+                    console.log(error.message);
+                } else {
+                    // You have connected to the session. You could publish a stream now.
+
+                    sceneBtn.addEventListener("click", () => {
+                        console.log("changing scene");
+                        session.signal({
+                            type: "update-scene",
+                            data: sceneSelect.value
+                        }, (error) => {
+                            if (error) {
+                                console.error("updating scene failed: ", error);
+                            } else {
+                                console.log("updating scene worked!");
+                            }
+                        });
+
+                    });
+
+                    screenShareEl.session = session;
+                    screenShareEl.token = videoToken;
+                    screenShareEl.properties = {width: "320px", height: "240px", showControls: false}
+
+                    inputsSelectEl.addEventListener('inputsSelected', (event)=> {
+                        inputsSelectEl.style.display = "none";
+                        videoPublisherEl.session = session;
+                        videoPublisherEl.token = videoToken;
+                        videoPublisherEl.properties = {width: "400px", height: "400px", name: nameInput.value, audioSource:event.detail.audioSource, videoSource:event.detail.videoSource};
+                        videoPublisherEl.style.display = "block";
+                        videoPublisherEl.startPublish();
+                        videoPublisherEl.addEventListener("published",(event)=> {
+                            videoPublisherEl.setAttribute("id", `${event.detail.publisher.stream.streamId}`);
+                            toggleDisplayBtn.setAttribute("data-id", `${event.detail.publisher.stream.streamId}`);
+                            displayState = [...displayState, {id:event.detail.publisher.stream.streamId, display: 'false'}];
+                        });
+                        controlsDiv.style.display = "block";
+                    });
+
+                    toggleVideoBtn.addEventListener('click', ()=> {
+                        videoPublisherEl.toggleVideo(); 
+                    });
+
+                    toggleAudioBtn.addEventListener('click', ()=> {
+                        videoPublisherEl.toggleAudio(); 
+                    });
+
+                    cycleBtn.addEventListener('click', ()=> {
+                        videoPublisherEl.cycleVideo(); 
+                    });
+
+                    toggleDisplayBtn.addEventListener("click", sendSignal);
+                }
+            });
+
+            session.on("streamCreated", (event) => {
+                const subscriberTemplate = document.querySelector('#subscriber-template');
+                const subscriberClone = subscriberTemplate.content.cloneNode(true);
+
+                const videoSubscriberEl = subscriberClone.querySelector("video-subscriber");
+                const videoSubscriberBtn = subscriberClone.querySelector("button");
+                videoSubscriberEl.setAttribute("id", `${event.stream.streamId}`);
+                videoSubscriberEl.session = session;
+                videoSubscriberEl.stream = event.stream;
+
+                if (event.stream.videoType === "screen"){
+                    videoSubscriberBtn.style.display = "none";
+                } else {
+                    videoSubscriberBtn.setAttribute("data-id", `${event.stream.streamId}`);
+                    // check if already in displayState from being loaded from localStorage
+                    const foundIndex = displayState.findIndex((display) => display.id === event.stream.streamId);
+                    if (foundIndex !== -1){
+                        videoSubscriberBtn.setAttribute("data-display", displayState[foundIndex].display==="true" ? "false" : "true");
+                        videoSubscriberBtn.innerText = displayState[foundIndex].display==="true" ? "hide from stream" : "show on stream";
+
+                    } else {
+                        videoSubscriberBtn.setAttribute("data-display", "true");
+                        videoSubscriberBtn.innerText="show on stream";
+                        displayState = [...displayState, {id:event.stream.streamId, display: 'false'}];
+                        // save to localStorage
+                        saveToLocalStorage("displayState", displayState);
+                    }
+                    videoSubscriberBtn.setAttribute("data-type","toggle-display");
+
+                    videoSubscriberBtn.addEventListener("click", sendSignal);
+                }
+                subscribersSection.appendChild(subscriberClone);
+            });
+
+            session.on("streamDestroyed", (event) => {
+                if (document.querySelector(`[data-id="${event.stream.streamId}"]`)) {
+                    document.querySelector(`[data-id="${event.stream.streamId}"]`).remove();
+                    // remove from displayState
+                    const foundIndex = displayState.findIndex((display) => display.id === event.stream.streamId);
+                    displayState.splice(foundIndex, 1);
+                    //save to localStorage
+                    saveToLocalStorage("displayState", displayState);
+                }
+            });
+
+            session.on("connectionCreated", (event) => {
+                // check to see if Watch Page connection
+                if (event.connection.permissions.publish===0){
+                    // send update display state signal
+                    session.signal({
+                        to: event.connection,
+                        type: "update-displays",
+                        data: JSON.stringify(displayState) // displayState
+                    }, (error) => {
+                        if (error) {
+                            console.error("updating states for connection failed: ", error);
+                        } else {
+                            console.log("updating states for connection worked!");
+                        }
+                    });
+                    session.signal({
+                        type: "update-scene",
+                        data: sceneSelect.value
+                    }, (error) => {
+                        if (error) {
+                            console.error("updating scene for connection failed: ", error);
+                        } else {
+                            console.log("updating scene for connection worked!");
+                        }
+                    });
+                }
+            });    
+        } catch(error){
+            console.error(error);
+        }
+    }
+
+    async function submitPassword(){
+        if (passwordInput.value !== ""){
+            try {
+                const dataToSend = {
+                    password: passwordInput.value,
+                    role: 'host'
+                }
+                const loginResponse = await postData(`/.netlify/functions/check_password`, dataToSend);
+                if (loginResponse.authorized){
+                    document.querySelector("#login").style.display = "none";
+                    loadDashboard();
+                }
+            } catch (error) {
+                console.error("error submitting password: ", error);
+            }
+        }
+    }
+
+    submitBtn.addEventListener('click', submitPassword, false);
+</script>
+
+<style>
+    #controls {
+        display: none;
+    }
+
+    video-subscriber {
+        display: block;
+    }
+
+    section {
+        width: 100%;
+    }
+
+    #chat-application {
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    vc-messages {
+        height: 300px;
+    }
+
+    vc-members {
+        height: 300px;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    vc-text-input {
+        font-size: 20px;
+    }
+</style>
