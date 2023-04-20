@@ -26,6 +26,16 @@ VONAGE_APP_ID=
 VONAGE_PRIVATE_KEY64=
 ```
 
+Copy the above and paste into the Netlify dashboard under `Site settings` -> `Environment variables`. 
+
+## 5. Fill out Environment Variables
+
+<details>
+    <summary>ADMIN_PASSWORD</summary>
+    Something small enough to escape casual notice.
+</details>
+
+
 ```
 npm create astro@latest -- --template basics
 ```
