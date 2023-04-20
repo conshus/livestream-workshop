@@ -26,7 +26,7 @@ VONAGE_APP_ID=
 VONAGE_PRIVATE_KEY64=
 ```
 
-Copy the above and paste into the Netlify dashboard under `Site settings` -> `Environment variables`. 
+Copy the above and paste into the Netlify dashboard (in your new site's section) under `Site settings` -> `Environment variables`. 
 
 ## 5. Fill out Environment Variables
 
