@@ -35,6 +35,46 @@ Copy the above and paste into the Netlify dashboard under `Site settings` -> `En
     Something small enough to escape casual notice.
 </details>
 
+<details>
+    <summary>GITHUB_PAT</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>GUEST_PASSWORD</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>HOST_PASSWORD</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>NETLIFY_PAT</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>TOKBOX_API_KEY</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>TOKBOX_SECRET</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>VONAGE_APP_ID</summary>
+    Something small enough to escape casual notice.
+</details>
+
+<details>
+    <summary>VONAGE_PRIVATE_KEY64</summary>
+    Something small enough to escape casual notice.
+</details>
+
 
 ```
 npm create astro@latest -- --template basics
