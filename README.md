@@ -1,6 +1,30 @@
-# Astro Starter Kit: Basics
+# Getting Started
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/conshus/meetups-poc/tree/opentok)
+## 1. Fork this repo.
+
+https://github.com/conshus/livestream-workshop/fork
+
+## 2. Log in / Sign Up at Netlify
+
+https://www.netlify.com/
+
+## 3. Import your forked repository into Netlify
+
+https://app.netlify.com/start
+
+## 4. Copy and Paste Environment Variables
+
+```
+ADMIN_PASSWORD=
+GITHUB_PAT=
+GUEST_PASSWORD=
+HOST_PASSWORD=
+NETLIFY_PAT=
+TOKBOX_API_KEY=
+TOKBOX_SECRET=
+VONAGE_APP_ID=
+VONAGE_PRIVATE_KEY64=
+```
 
 ```
 npm create astro@latest -- --template basics
