@@ -42,12 +42,12 @@ Copy the above and paste into the Netlify dashboard under `Site settings` -> `En
 
 <details>
     <summary>GUEST_PASSWORD</summary>
-    Set a password so that a Guest can join the live stream.
+    Set a password so that a Guest can join the live stream at the `/guest` route.
 </details>
 
 <details>
     <summary>HOST_PASSWORD</summary>
-    Set a password so for the Host to direct the live stream.
+    Set a password so for the Host to direct the live stream at the `/host` route.
 </details>
 
 <details>
