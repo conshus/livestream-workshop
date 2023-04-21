@@ -62,5 +62,5 @@ Copy the above and paste into the Netlify dashboard (in your new site's section)
 
 <details>
     <summary>VONAGE_APP_ID & VONAGE_PRIVATE_KEY64</summary>
-    Log in / Sign Up at Vonage Dashboard https://dashboard.nexmo.com/ and create an Application.
+    Log in / Sign Up at Vonage Dashboard https://vonage.dev/3JnD8q6 and create an Application.
 </details>
