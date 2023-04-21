@@ -57,10 +57,10 @@ Copy the above and paste into the Netlify dashboard (in your new site's section)
 
 <details>
     <summary>TOKBOX_API_KEY & TOKBOX_SECRET</summary>
-    Log in / Sign Up at TokBox Dashboard https://tokbox.com/account/ and create an Application.
+    Log in / Sign Up at the TokBox Dashboard https://tokbox.com/account/ and create an Application.
 </details>
 
 <details>
     <summary>VONAGE_APP_ID & VONAGE_PRIVATE_KEY64</summary>
-    Log in / Sign Up at Vonage Dashboard https://vonage.dev/3JnD8q6 and create an Application.
+    Log in / Sign Up at the Vonage Dashboard https://vonage.dev/3JnD8q6 and create an Application.
 </details>
