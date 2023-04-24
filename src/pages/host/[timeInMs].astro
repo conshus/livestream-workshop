@@ -48,7 +48,7 @@ const {apiKey, sessionId, conversationId} = eventData[0];
                 <section id="chat-section">
                     <div id="chat-loading">loading chat</div>
                     <div id="chat-application">
-                        <vc-members></vc-members>
+			<!-- <vc-members></vc-members> -->
                         <div id="chat-section">
                             <vc-messages></vc-messages>
                             <div>
@@ -76,7 +76,7 @@ const {apiKey, sessionId, conversationId} = eventData[0];
 	import '@vonage/screen-share/screen-share.js';
 	import '@vonage/inputs-select/inputs-select.js';
 
-    import '@vonage/vc-members/vc-members.js';
+    // import '@vonage/vc-members/vc-members.js';
     import '@vonage/vc-messages/vc-messages.js';
     import '@vonage/vc-typing-indicator/vc-typing-indicator';
     import '@vonage/vc-text-input/vc-text-input.js';
@@ -93,7 +93,7 @@ const {apiKey, sessionId, conversationId} = eventData[0];
 
     const vonageInput = document.querySelector("vc-text-input");
     const vonageTypingIndicator = document.querySelector("vc-typing-indicator");
-    const vonageMembers = document.querySelector("vc-members");
+    // const vonageMembers = document.querySelector("vc-members");
     const vonageMessagesFeed = document.querySelector("vc-messages");
 
     const chatApplication = document.querySelector("#chat-application");
@@ -179,7 +179,7 @@ const {apiKey, sessionId, conversationId} = eventData[0];
 
             vonageInput.conversation = conversation;
             vonageTypingIndicator.conversation = conversation;
-            vonageMembers.conversation = conversation;
+            // vonageMembers.conversation = conversation;
             vonageMessagesFeed.conversation = conversation;
 
             chatLoading.style.display = "none";
